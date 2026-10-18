@@ -1,8 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 import re
 
 db = SQLAlchemy()
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 def generate_slug(text):
     text = text.lower()
@@ -25,7 +28,7 @@ class Category(db.Model):
     name = db.Column(db.String(80), nullable=False, unique=True)
     slug = db.Column(db.String(100), nullable=False, unique=True)
     color = db.Column(db.String(20), default='cyan')  # cyan, emerald, purple, blue, amber, rose
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     # İlişki
     posts = db.relationship('Post', backref='category', lazy=True, cascade="all, delete-orphan")
@@ -56,8 +59,8 @@ class Post(db.Model):
     # İstatistikler
     views = db.Column(db.Integer, default=0)
     downloads = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
+    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
 
     @property
     def formatted_size(self):

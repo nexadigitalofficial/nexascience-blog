@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 from flask import (
     Flask, render_template, request, redirect, url_for, 
@@ -17,7 +17,7 @@ db.init_app(app)
 
 @app.context_processor
 def inject_globals():
-    return {'now': datetime.utcnow()}
+    return {'now': datetime.now(timezone.utc)}
 
 
 def admin_required(f):
@@ -313,5 +313,7 @@ def admin_delete_post(post_id):
 init_db()
 
 if __name__ == '__main__':
-    # Local test çalıştırması
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    # Cloud hosting (Render, Railway, Heroku) PORT ve HOST uyumluluğu
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug)
