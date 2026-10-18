@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} | NexaScience{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Üst Gezinti / Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-slate-400">
+        <a href="{{ url_for('index') }}" class="hover:text-teal-400 transition-colors">Ana Sayfa</a>
+        <span>/</span>
+        <a href="{{ url_for('index', kategori=post.category.slug) }}" class="text-teal-400 hover:underline">
+            {{ post.category.name }}
+        </a>
+        <span>/</span>
+        <span class="text-slate-300 truncate max-w-xs">{{ post.title }}</span>
+    </nav>
+
+    <!-- Yazı Başlığı & Meta Veriler -->
+    <header class="space-y-4 border-b border-slate-800 pb-8">
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Kategori Rozeti -->
+            <a href="{{ url_for('index', kategori=post.category.slug) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold tracking-wide uppercase bg-teal-950/80 border border-teal-500/40 text-teal-300 hover:bg-teal-900/50 transition-colors">
+                <i class="fa-solid fa-tag text-[10px]"></i>
+                {{ post.category.name }}
+            </a>
+            
+            <!-- Tarih & İstatistikler -->
+            <span class="text-xs text-slate-400 flex items-center gap-1">
+                <i class="fa-regular fa-calendar"></i> {{ post.created_at.strftime('%d.%m.%Y, %H:%M') }}
+            </span>
+            <span class="text-slate-600">&bull;</span>
+            <span class="text-xs text-slate-400 flex items-center gap-1">
+                <i class="fa-regular fa-eye"></i> {{ post.views }} görüntülenme
+            </span>
+            <span class="text-slate-600">&bull;</span>
+            <span class="text-xs text-slate-400 flex items-center gap-1">
+                <i class="fa-solid fa-download"></i> {{ post.downloads }} indirme
+            </span>
+        </div>
+
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            {{ post.title }}
+        </h1>
+
+        {% if post.summary %}
+            <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-light border-l-2 border-teal-500/60 pl-4 py-1 italic bg-slate-950/40 rounded-r-xl">
+                {{ post.summary }}
+            </p>
+        {% endif %}
+    </header>
+
+    <!-- AKILLI DOSYA SUNUM ALANI (DYNAMIC FILE VIEWER) -->
+    <section class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-microchip text-teal-400"></i> Ekli Dosya ve İçerik
+            </h3>
+            <a href="{{ url_for('download_file', post_id=post.id) }}" 
+               class="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-lg shadow-teal-500/20">
+                <i class="fa-solid fa-download"></i>
+                <span>Dosyayı İndir ({{ post.formatted_size }})</span>
+            </a>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden p-4 sm:p-6 shadow-xl">
+            
+            {% set file_url = url_for('static', filename='uploads/' + post.file_filename) %}
+
+            {# 1. GÖRSEL DOSYASI #}
+            {% if post.file_type == 'image' %}
+                <div class="space-y-4 text-center">
+                    <div class="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 flex items-center justify-center p-2">
+                        <img src="{{ file_url }}" alt="{{ post.title }}" class="max-h-[600px] w-auto object-contain rounded-lg shadow-md hover:scale-[1.01] transition-transform">
+                    </div>
+                    <p class="text-xs text-slate-400">
+                        <i class="fa-solid fa-image text-teal-400 mr-1"></i> {{ post.file_original_name }} ({{ post.formatted_size }})
+                    </p>
+                </div>
+
+            {# 2. PDF BELGESİ #}
+            {% elif post.file_type == 'pdf' %}
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs text-slate-300">
+                        <span class="flex items-center gap-2 font-medium">
+                            <i class="fa-solid fa-file-pdf text-rose-400 text-base"></i> {{ post.file_original_name }}
+                        </span>
+                        <a href="{{ file_url }}" target="_blank" class="text-teal-400 hover:underline flex items-center gap-1 font-semibold">
+                            <span>Yeni Sekmede Aç</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                    <!-- Gömülü PDF Görüntüleyici -->
+                    <div class="w-full h-[650px] rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+                        <iframe src="{{ file_url }}" class="w-full h-full" frameborder="0">
+                            <div class="p-8 text-center text-slate-400">
+                                Tarayıcınız PDF önizlemeyi desteklemiyor. 
+                                <a href="{{ file_url }}" target="_blank" class="text-teal-400 underline">Buraya tıklayarak PDF'i açabilirsiniz.</a>
+                            </div>
+                        </iframe>
+                    </div>
+                </div>
+
+            {# 3. VİDEO DOSYASI #}
+            {% elif post.file_type == 'video' %}
+                <div class="space-y-3">
+                    <video controls class="w-full max-h-[500px] rounded-xl bg-black border border-slate-800 shadow-md">
+                        <source src="{{ file_url }}" type="video/mp4">
+                        Tarayıcınız video etiketini desteklemiyor.
+                    </video>
+                    <p class="text-xs text-slate-400 text-right">
+                        <i class="fa-solid fa-film text-teal-400 mr-1"></i> {{ post.file_original_name }}
+                    </p>
+                </div>
+
+            {# 4. SES / PODCAST / AUDIO #}
+            {% elif post.file_type == 'audio' %}
+                <div class="p-6 bg-slate-900 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-headphones"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-100">{{ post.file_original_name }}</h4>
+                            <p class="text-xs text-slate-400">{{ post.formatted_size }} &bull; Ses Kaydı</p>
+                        </div>
+                    </div>
+                    <audio controls class="w-full">
+                        <source src="{{ file_url }}">
+                        Tarayıcınız ses oynatmayı desteklemiyor.
+                    </audio>
+                </div>
+
+            {# 5. VERİ / KOD / METİN ÖNİZLEMESİ #}
+            {% elif preview_content %}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs">
+                        <span class="text-slate-300 font-mono flex items-center gap-2">
+                            <i class="fa-solid fa-code text-teal-400"></i> {{ post.file_original_name }}
+                        </span>
+                        <span class="text-slate-400 text-[11px]">{{ post.formatted_size }}</span>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-teal-200 leading-relaxed whitespace-pre-wrap select-all">
+{{ preview_content }}
+                    </div>
+                </div>
+
+            {# 6. DİĞER DOSYALAR VEYA ARŞİVLER #}
+            {% else %}
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-slate-900 rounded-xl border border-slate-800">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-2xl border border-teal-500/20">
+                            <i class="{{ post.file_icon }}"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-100 text-base">{{ post.file_original_name }}</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Uzantı: <span class="uppercase text-teal-400 font-mono">{{ post.file_extension }}</span> &bull; Boyut: {{ post.formatted_size }}
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('download_file', post_id=post.id) }}" 
+                       class="w-full sm:w-auto text-center bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-lg shadow-teal-500/20">
+                        <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Dosyayı İndir
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+    <!-- Yazı Detay İçeriği -->
+    {% if post.content %}
+        <article class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8 space-y-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-align-left text-teal-400"></i> Açıklama ve Analiz Notları
+            </h3>
+            <div class="text-slate-200 text-sm sm:text-base leading-relaxed whitespace-pre-line prose prose-invert max-w-none">
+                {{ post.content }}
+            </div>
+        </article>
+    {% endif %}
+
+    <!-- İlgili Diğer Yayınlar -->
+    {% if related_posts %}
+        <section class="space-y-4 pt-6 border-t border-slate-800">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                Aynı Kategorideki Diğer Yayınlar ({{ post.category.name }})
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {% for rel in related_posts %}
+                    <a href="{{ url_for('post_detail', slug=rel.slug) }}" class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl hover:border-teal-500/40 transition-colors group block">
+                        <p class="text-xs text-teal-400 font-semibold mb-1">#{{ rel.category.name }}</p>
+                        <h4 class="text-sm font-bold text-slate-200 group-hover:text-teal-300 transition-colors line-clamp-2">
+                            {{ rel.title }}
+                        </h4>
+                        <span class="text-[11px] text-slate-400 mt-2 block">
+                            <i class="{{ rel.file_icon }} mr-1"></i>{{ rel.file_original_name }}
+                        </span>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+</div>
+{% endblock %}

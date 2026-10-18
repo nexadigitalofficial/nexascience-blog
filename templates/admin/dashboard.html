@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Yönetim Paneli | NexaScience{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Üst Başlık ve Aksiyonlar -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-950/70 border border-slate-800 p-6 rounded-2xl shadow-xl">
+        <div class="space-y-1">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">Yönetim Konsolu</span>
+            </div>
+            <h1 class="text-2xl font-black text-white tracking-tight">NexaScience Admin Paneli</h1>
+            <p class="text-xs text-slate-400">Blog yayınları, yüklenen dosyalar ve kategori yönetimi.</p>
+        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <button onclick="document.getElementById('category-modal').classList.remove('hidden')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-plus text-teal-400"></i>
+                <span>Yeni Kategori</span>
+            </button>
+            <a href="{{ url_for('admin_new_post') }}" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs transition-colors shadow-lg shadow-teal-500/20 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Yeni Dosya / Yazı Yükle</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Toplam Yazı -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-file-lines text-teal-400"></i> Toplam Yayın
+            </span>
+            <p class="text-2xl font-black text-white">{{ stats.total_posts }}</p>
+        </div>
+
+        <!-- Kategoriler -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-tags text-cyan-400"></i> Kategoriler
+            </span>
+            <p class="text-2xl font-black text-white">{{ stats.total_categories }}</p>
+        </div>
+
+        <!-- Disk Hafızası -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-hard-drive text-purple-400"></i> Disk Hafızası
+            </span>
+            <p class="text-2xl font-black text-teal-300 font-mono">{{ stats.total_storage }}</p>
+        </div>
+
+        <!-- Okunma -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-regular fa-eye text-blue-400"></i> Görüntülenme
+            </span>
+            <p class="text-2xl font-black text-white">{{ stats.total_views }}</p>
+        </div>
+
+        <!-- İndirme -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-2 col-span-2 lg:col-span-1">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-download text-amber-400"></i> İndirilme
+            </span>
+            <p class="text-2xl font-black text-white">{{ stats.total_downloads }}</p>
+        </div>
+    </div>
+
+    <!-- Yayınlar Listesi Tablosu -->
+    <div class="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+            <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-teal-400"></i> Yüklenen Dosyalar ve Blog İçerikleri
+            </h3>
+            <span class="text-xs text-slate-400">{{ posts|length }} kayıt listeleniyor</span>
+        </div>
+
+        {% if posts %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900/80 border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                        <tr>
+                            <th class="py-3.5 px-4">Başlık</th>
+                            <th class="py-3.5 px-4">Kategori</th>
+                            <th class="py-3.5 px-4">Yüklenen Dosya</th>
+                            <th class="py-3.5 px-4">Boyut</th>
+                            <th class="py-3.5 px-4">Tarih</th>
+                            <th class="py-3.5 px-4 text-center">Görünüm / İndirme</th>
+                            <th class="py-3.5 px-4 text-right">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for post in posts %}
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <!-- Başlık -->
+                                <td class="py-3.5 px-4 font-semibold text-slate-100 max-w-xs">
+                                    <a href="{{ url_for('post_detail', slug=post.slug) }}" class="hover:text-teal-400 transition-colors truncate block">
+                                        {{ post.title }}
+                                    </a>
+                                </td>
+
+                                <!-- Kategori -->
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-900 border border-slate-700 text-teal-400 whitespace-nowrap">
+                                        #{{ post.category.name }}
+                                    </span>
+                                </td>
+
+                                <!-- Dosya -->
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center gap-2 max-w-xs truncate" title="{{ post.file_original_name }}">
+                                        <i class="{{ post.file_icon }} text-teal-400 flex-shrink-0"></i>
+                                        <span class="truncate font-mono text-[11px]">{{ post.file_original_name }}</span>
+                                    </div>
+                                </td>
+
+                                <!-- Boyut -->
+                                <td class="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">
+                                    {{ post.formatted_size }}
+                                </td>
+
+                                <!-- Tarih -->
+                                <td class="py-3.5 px-4 text-slate-400 whitespace-nowrap">
+                                    {{ post.created_at.strftime('%d.%m.%Y') }}
+                                </td>
+
+                                <!-- İstatistik -->
+                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                    <span class="text-slate-300 font-semibold">{{ post.views }}</span> <span class="text-slate-400">/</span> <span class="text-teal-400 font-semibold">{{ post.downloads }}</span>
+                                </td>
+
+                                <!-- Aksiyonlar -->
+                                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ url_for('post_detail', slug=post.slug) }}" target="_blank" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg transition-colors" title="Önizle">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <form action="{{ url_for('admin_delete_post', post_id=post.id) }}" method="POST" onsubmit="return confirm('Bu içeriği ve sunucudaki dosyasını silmek istediğinize emin misiniz?');" class="inline">
+                                            <button type="submit" class="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 hover:text-rose-300 rounded-lg transition-colors" title="Sil">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-12 text-center space-y-3">
+                <i class="fa-solid fa-folder-open text-4xl text-slate-600"></i>
+                <p class="text-sm text-slate-400">Henüz hiç dosya yüklenmedi.</p>
+                <a href="{{ url_for('admin_new_post') }}" class="inline-block text-xs text-teal-400 hover:underline">
+                    İlk içeriği şimdi yükle &rarr;
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Yeni Kategori Ekleme Modalı -->
+<div id="category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-tags text-teal-400"></i> Yeni Kategori Ekle
+            </h4>
+            <button onclick="document.getElementById('category-modal').classList.add('hidden')" class="text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form action="{{ url_for('admin_add_category') }}" method="POST" class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-xs text-slate-300 font-semibold">Kategori Adı</label>
+                <input type="text" name="name" required placeholder="örn: Nörobilim & Beyin" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-teal-400">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-xs text-slate-300 font-semibold">Tema Rengi</label>
+                <select name="color" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-teal-400">
+                    <option value="cyan">Cyan (Açık Mavi)</option>
+                    <option value="emerald">Emerald (Yeşil)</option>
+                    <option value="purple">Purple (Mor)</option>
+                    <option value="blue">Blue (Mavi)</option>
+                    <option value="amber">Amber (Turuncu/Sarı)</option>
+                    <option value="rose">Rose (Kırmızı/Pembe)</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-colors">
+                Kategoriyi Kaydet
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

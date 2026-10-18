@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Yönetici Girişi | NexaScience{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-slate-950/80 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div class="text-center space-y-2">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center text-xl shadow-lg shadow-teal-500/10">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Admin Girişi</h2>
+            <p class="text-xs text-slate-400">NexaScience yönetim paneline erişim sağlayın.</p>
+        </div>
+
+        <form action="{{ url_for('admin_login') }}" method="POST" class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">Kullanıcı Adı</label>
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        required 
+                        placeholder="admin" 
+                        class="w-full bg-slate-900 border border-slate-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+                    >
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">Şifre</label>
+                <div class="relative">
+                    <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        required 
+                        placeholder="••••••••" 
+                        class="w-full bg-slate-900 border border-slate-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+                    >
+                </div>
+                <p class="text-[11px] text-slate-400 pt-1">Varsayılan şifre: <code class="text-teal-400 font-mono">nexascience123</code></p>
+            </div>
+
+            <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-sm transition-colors shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                <span>Giriş Yap</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni İçerik & Dosya Yükle | NexaScience Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Üst Bar -->
+    <div class="flex items-center justify-between">
+        <a href="{{ url_for('admin_dashboard') }}" class="text-xs text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Panele Geri Dön</span>
+        </a>
+        <span class="text-xs text-slate-400">Tek tıkla sürükle-bırak & kategori seçimi</span>
+    </div>
+
+    <!-- Form Kartı -->
+    <div class="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div>
+            <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+                <i class="fa-solid fa-cloud-arrow-up text-teal-400"></i>
+                <span>Yeni Blog İçeriği ve Dosya Sunumu</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+                Yüklediğiniz herhangi bir dosya sunucuda güvenli hafızaya alınır ve seçtiğiniz kategori etiketi ile blogda yayınlanır.
+            </p>
+        </div>
+
+        <form action="{{ url_for('admin_new_post') }}" method="POST" enctype="multipart/form-data" id="post-upload-form" class="space-y-6">
+
+            <!-- 1. SÜRÜKLE - BIRAK ALANI (DRAG & DROP DROPZONE) -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Sunulacak Dosya <span class="text-teal-400">*</span>
+                </label>
+                
+                <div id="drop-zone" class="relative group border-2 border-dashed border-slate-700 hover:border-teal-400/70 rounded-2xl p-8 text-center bg-slate-900/60 hover:bg-slate-900/90 transition-all cursor-pointer">
+                    <!-- Gizli Standart File Input -->
+                    <input type="file" name="file" id="file-input" class="hidden" required>
+
+                    <!-- Varsayılan Yükleme Görünümü -->
+                    <div id="drop-zone-prompt" class="space-y-3">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-teal-500/20 transition-all shadow-lg shadow-teal-500/10">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm font-bold text-slate-200">
+                                Dosyayı buraya <span class="text-teal-400 underline decoration-teal-500/50">sürükleyip bırakın</span>
+                            </p>
+                            <p class="text-xs text-slate-400">
+                                veya bilgisayarınızdan seçmek için tıklayın
+                            </p>
+                        </div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/80 text-[11px] text-slate-400">
+                            <i class="fa-solid fa-circle-check text-teal-400 text-[9px]"></i>
+                            <span>PDF, Görseller, Veri Setleri (CSV/JSON), Kod, Doküman vb. (Maks 100 MB)</span>
+                        </div>
+                    </div>
+
+                    <!-- Dosya Seçildiğinde Canlı Hafıza Önizlemesi -->
+                    <div id="file-preview-card" class="hidden text-left bg-slate-950 p-4 rounded-xl border border-teal-500/40 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div id="preview-icon-wrapper" class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i id="preview-icon" class="fa-solid fa-file"></i>
+                                </div>
+                                <div class="truncate">
+                                    <h4 id="preview-filename" class="font-bold text-slate-100 text-sm truncate">dosya_adi.pdf</h4>
+                                    <p id="preview-filesize" class="text-xs text-teal-300 font-mono">0 KB</p>
+                                </div>
+                            </div>
+                            <button type="button" id="remove-file-btn" class="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-900 transition-colors" title="Dosyayı Değiştir">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Görsel İse Küçük Resim Önizlemesi -->
+                        <div id="image-thumbnail-wrapper" class="hidden overflow-hidden rounded-lg max-h-48 border border-slate-800 bg-slate-900 flex items-center justify-center">
+                            <img id="image-thumbnail" src="" alt="Önizleme" class="max-h-48 w-auto object-contain">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. KATEGORİ SEÇİMİ VE HIZLI YENİ KATEGORİ -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Kategori Etiketi <span class="text-teal-400">*</span>
+                    </label>
+                    <button type="button" onclick="openInlineCatModal()" class="text-xs text-teal-400 hover:text-teal-300 font-semibold flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                        <span>Yeni Kategori Ekle</span>
+                    </button>
+                </div>
+                
+                <div class="relative">
+                    <select name="category_id" id="category-select" required class="w-full bg-slate-900 border border-slate-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="" disabled selected>Bir kategori seçin...</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}"># {{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none"></i>
+                </div>
+                <p class="text-[11px] text-slate-400">Blog sayfasında bu kategori etiketi ile rozetlenecektir.</p>
+            </div>
+
+            <!-- 3. BAŞLIK -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Yazı / Dosya Başlığı <span class="text-teal-400">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="title" 
+                    id="post-title" 
+                    required 
+                    placeholder="örn: Yeni Nesil CRISPR-Cas9 Gen Düzenleme Analiz Raporu" 
+                    class="w-full bg-slate-900 border border-slate-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+                >
+            </div>
+
+            <!-- 4. KISA ÖZET -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Kısa Özet / Alt Başlık <span class="text-slate-500 font-normal">(İsteğe Bağlı)</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="summary" 
+                    placeholder="Blog kartında ve başlık altında gösterilecek kısa 1-2 cümlelik özet" 
+                    class="w-full bg-slate-900 border border-slate-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+                >
+            </div>
+
+            <!-- 5. DETAYLI İÇERİK & NOTLAR -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Açıklama / Analiz Notları <span class="text-slate-500 font-normal">(İsteğe Bağlı)</span>
+                </label>
+                <textarea 
+                    name="content" 
+                    rows="5" 
+                    placeholder="Dosya hakkında metodoloji, araştırma detayları veya açıklama notları..." 
+                    class="w-full bg-slate-900 border border-slate-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all resize-y"
+                ></textarea>
+            </div>
+
+            <!-- GÖNDERME BUTONU -->
+            <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-4">
+                <a href="{{ url_for('admin_dashboard') }}" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors">
+                    İptal
+                </a>
+                <button type="submit" id="submit-btn" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Hafızaya Al ve Yayınla</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<!-- Hızlı Kategori Ekleme Modalı (AJAX Destekli) -->
+<div id="inline-category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle text-teal-400"></i> Hızlı Kategori Ekle
+            </h4>
+            <button onclick="closeInlineCatModal()" class="text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-xs text-slate-300 font-semibold">Kategori Adı</label>
+                <input type="text" id="new-cat-name" placeholder="örn: Biyoenformatik & Kod" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-teal-400">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-xs text-slate-300 font-semibold">Renk Rozeti</label>
+                <select id="new-cat-color" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-teal-400">
+                    <option value="cyan">Cyan</option>
+                    <option value="emerald">Emerald</option>
+                    <option value="purple">Purple</option>
+                    <option value="blue">Blue</option>
+                    <option value="amber">Amber</option>
+                    <option value="rose">Rose</option>
+                </select>
+            </div>
+            <button type="button" onclick="submitNewCategoryAjax()" id="add-cat-btn" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-colors">
+                Kategoriyi Ekle ve Seç
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Drag & Drop Dosya Yükleme Yönetimi
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const dropZonePrompt = document.getElementById('drop-zone-prompt');
+    const filePreviewCard = document.getElementById('file-preview-card');
+    const previewFilename = document.getElementById('preview-filename');
+    const previewFilesize = document.getElementById('preview-filesize');
+    const previewIcon = document.getElementById('preview-icon');
+    const imageThumbnailWrapper = document.getElementById('image-thumbnail-wrapper');
+    const imageThumbnail = document.getElementById('image-thumbnail');
+    const removeFileBtn = document.getElementById('remove-file-btn');
+    const postTitleInput = document.getElementById('post-title');
+
+    // Tıklamayla dosya seçme
+    dropZone.addEventListener('click', (e) => {
+        if (!e.target.closest('#remove-file-btn')) {
+            fileInput.click();
+        }
+    });
+
+    // Sürükle - Bırak Olayları
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-teal-400', 'bg-teal-500/10', 'scale-[1.01]');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-teal-400', 'bg-teal-500/10', 'scale-[1.01]');
+        }, false);
+    });
+
+    // Dosya Bırakıldığında (Drop)
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelection(files[0]);
+        }
+    });
+
+    // File Input Değiştiğinde
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            handleFileSelection(fileInput.files[0]);
+        }
+    });
+
+    // Seçilen Dosyayı Canlı Olarak Arayüzde Göster
+    function handleFileSelection(file) {
+        if (!file) return;
+
+        // Dosya Adı ve Boyutu
+        previewFilename.textContent = file.name;
+        previewFilesize.textContent = formatBytes(file.size);
+
+        // Eğer başlık alanı henüz boşsa, dosya adından otomatik başlık öner
+        if (!postTitleInput.value.trim()) {
+            const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+            postTitleInput.value = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+        }
+
+        // İkonu ayarla
+        const ext = file.name.split('.').pop().toLowerCase();
+        let iconClass = 'fa-solid fa-file';
+
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+            iconClass = 'fa-regular fa-image';
+            // Resim Önizlemesi Oluştur
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageThumbnail.src = e.target.result;
+                imageThumbnailWrapper.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            imageThumbnailWrapper.classList.add('hidden');
+            if (ext === 'pdf') iconClass = 'fa-solid fa-file-pdf text-rose-400';
+            else if (['mp4', 'mov', 'webm'].includes(ext)) iconClass = 'fa-solid fa-film text-purple-400';
+            else if (['mp3', 'wav', 'ogg'].includes(ext)) iconClass = 'fa-solid fa-headphones text-cyan-400';
+            else if (['csv', 'json', 'xlsx', 'parquet'].includes(ext)) iconClass = 'fa-solid fa-chart-pie text-amber-400';
+            else if (['py', 'js', 'html', 'c', 'cpp'].includes(ext)) iconClass = 'fa-solid fa-code text-teal-400';
+            else if (['zip', 'rar', 'tar', 'gz'].includes(ext)) iconClass = 'fa-solid fa-file-zipper text-emerald-400';
+        }
+
+        previewIcon.className = iconClass;
+
+        // Arayüz geçişi
+        dropZonePrompt.classList.add('hidden');
+        filePreviewCard.classList.remove('hidden');
+    }
+
+    // Dosyayı İptal Et / Kaldır
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        dropZonePrompt.classList.remove('hidden');
+        filePreviewCard.classList.add('hidden');
+        imageThumbnailWrapper.classList.add('hidden');
+    });
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Hızlı Kategori Modalı Fonksiyonları
+    function openInlineCatModal() {
+        document.getElementById('inline-category-modal').classList.remove('hidden');
+        document.getElementById('new-cat-name').focus();
+    }
+    function closeInlineCatModal() {
+        document.getElementById('inline-category-modal').classList.add('hidden');
+        document.getElementById('new-cat-name').value = '';
+    }
+
+    function submitNewCategoryAjax() {
+        const name = document.getElementById('new-cat-name').value.trim();
+        const color = document.getElementById('new-cat-color').value;
+
+        if (!name) {
+            alert('Lütfen kategori adını girin.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('color', color);
+
+        fetch("{{ url_for('admin_add_category') }}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Dropdown'a yeni kategoriyi ekle ve seçili yap
+                const select = document.getElementById('category-select');
+                const opt = document.createElement('option');
+                opt.value = data.category.id;
+                opt.textContent = '# ' + data.category.name;
+                opt.selected = true;
+                select.appendChild(opt);
+
+                closeInlineCatModal();
+            } else {
+                alert(data.message || 'Kategori eklenemedi.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Kategori eklenirken bir hata oluştu.');
+        });
+    }
+</script>
+{% endblock %}

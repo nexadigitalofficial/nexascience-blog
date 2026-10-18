@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NexaScience | Bilim, Veri ve Araştırma Portalı{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nexa: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            800: '#115e59',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-900 text-slate-100 font-['Inter'] min-h-screen flex flex-col antialiased selection:bg-teal-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-400 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-atom text-xl"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">NexaScience</span>
+                        <span class="text-[10px] tracking-widest uppercase text-slate-400 font-semibold -mt-1">Research & Blog</span>
+                    </div>
+                </a>
+
+                <!-- Nav Links -->
+                <div class="flex items-center gap-4">
+                    <a href="{{ url_for('index') }}" class="text-sm font-medium text-slate-300 hover:text-teal-400 transition-colors flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/50">
+                        <i class="fa-solid fa-newspaper text-xs"></i> Tüm Yayınlar
+                    </a>
+                    
+                    {% if session.get('admin_logged_in') %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="text-sm font-medium bg-slate-800 text-teal-400 hover:bg-slate-700 transition-all px-3.5 py-1.5 rounded-lg border border-teal-500/30 flex items-center gap-2">
+                            <i class="fa-solid fa-gauge text-xs"></i> Admin Paneli
+                        </a>
+                        <a href="{{ url_for('admin_logout') }}" class="text-sm text-slate-400 hover:text-rose-400 transition-colors px-2 py-1.5" title="Çıkış Yap">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('admin_login') }}" class="text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/60">
+                            <i class="fa-solid fa-lock text-[10px]"></i> Yönetici
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Mesajları -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set alert_color = 'bg-teal-950/80 border-teal-500 text-teal-200' %}
+                    {% if category == 'danger' %}
+                        {% set alert_color = 'bg-rose-950/80 border-rose-500 text-rose-200' %}
+                    {% elif category == 'warning' %}
+                        {% set alert_color = 'bg-amber-950/80 border-amber-500 text-amber-200' %}
+                    {% elif category == 'info' %}
+                        {% set alert_color = 'bg-sky-950/80 border-sky-500 text-sky-200' %}
+                    {% endif %}
+                    <div class="flex items-center justify-between p-4 mb-3 border rounded-xl backdrop-blur-sm {{ alert_color }} transition-all animate-fadeIn">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span class="text-sm font-medium">{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-xs opacity-70 hover:opacity-100 p-1">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Ana İçerik -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-800 bg-slate-950/90 py-8 text-slate-400 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-300">NexaScience</span>
+                <span>&bull;</span>
+                <span>Bilimsel Blog ve Dosya Paylaşım Platformu</span>
+            </div>
+            <div class="flex items-center gap-4 text-slate-500">
+                <span>Python & Hosting Ready Architecture</span>
+                <span>&bull;</span>
+                <span>&copy; {{ now.year if now else '2026' }} NexaScience</span>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
